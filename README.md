@@ -37,4 +37,4 @@ Product descriptions, inventory, prices, coupon, shipping estimate, return windo
 
 Cart, wishlist, gender preference, demo support submissions, and upcoming interest are stored in browser local storage. Demo order references use session storage and are not sent to a warehouse, payment provider, or carrier. No card data is collected. Authentication, real order history, payment processing, tax, inventory, shipping, email notifications, and customer support require backend or third-party integrations.
 
-Product photography is loaded from Unsplash. Playfair Display is loaded from Google Fonts, and Dashley wordmarks are loaded from Font Library; these assets require an internet connection. Replace illustrative photos with accurate product photography before production.
+Product photography is loaded from Unsplash. DM Sans and Barlow Condensed are loaded from Google Fonts, and Dashley wordmarks are loaded from Font Library; these assets require an internet connection. Replace illustrative photos with accurate product photography before production.
