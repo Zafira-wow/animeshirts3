@@ -1,9 +1,11 @@
 import {
   useEffect,
   useMemo,
+  useRef,
   useState,
   type ChangeEvent,
   type FormEvent,
+  type PointerEvent as ReactPointerEvent,
 } from "react";
 import {
   BrowserRouter,
@@ -1583,6 +1585,26 @@ function WishlistPage() {
   );
 }
 
+type CustomDesign = {
+  text: string;
+  textPos: { x: number; y: number };
+  textScale: number;
+  image: string;
+  imageName: string;
+  imagePos: { x: number; y: number };
+  imageScale: number;
+};
+
+const emptyDesign: CustomDesign = {
+  text: "",
+  textPos: { x: 50, y: 62 },
+  textScale: 1,
+  image: "",
+  imageName: "",
+  imagePos: { x: 50, y: 45 },
+  imageScale: 1,
+};
+
 function CustomTeePage() {
   const { addToCart } = useStore();
   const [model, setModel] = useState("classic");
@@ -1590,11 +1612,57 @@ function CustomTeePage() {
   const [hex, setHex] = useState("#252525");
   const [size, setSize] = useState("M");
   const [quantity, setQuantity] = useState(1);
-  const [text, setText] = useState("your own rules");
   const [textColor, setTextColor] = useState("#00d653");
-  const [uploadName, setUploadName] = useState("");
-  const [preview, setPreview] = useState("");
+  const [side, setSide] = useState<"front" | "back">("front");
+  const [designs, setDesigns] = useState<Record<"front" | "back", CustomDesign>>({
+    front: { ...emptyDesign, text: "your own rules" },
+    back: { ...emptyDesign },
+  });
   const [message, setMessage] = useState("");
+  const previewRef = useRef<HTMLDivElement>(null);
+  const dragRef = useRef<{
+    layer: "text" | "image";
+    dx: number;
+    dy: number;
+  } | null>(null);
+  const design = designs[side];
+  const { text, image: preview, imageName: uploadName } = design;
+  const updateDesign = (patch: Partial<CustomDesign>) =>
+    setDesigns((current) => ({
+      ...current,
+      [side]: { ...current[side], ...patch },
+    }));
+  const startDrag = (
+    layer: "text" | "image",
+    event: ReactPointerEvent<HTMLElement>,
+  ) => {
+    if (event.button !== 0) return;
+    const rect = previewRef.current?.getBoundingClientRect();
+    if (!rect) return;
+    const pos = layer === "text" ? design.textPos : design.imagePos;
+    dragRef.current = {
+      layer,
+      dx: pos.x - ((event.clientX - rect.left) / rect.width) * 100,
+      dy: pos.y - ((event.clientY - rect.top) / rect.height) * 100,
+    };
+    event.currentTarget.setPointerCapture(event.pointerId);
+    event.preventDefault();
+  };
+  const moveDrag = (event: ReactPointerEvent<HTMLElement>) => {
+    const drag = dragRef.current;
+    const rect = previewRef.current?.getBoundingClientRect();
+    if (!drag || !rect) return;
+    const x = ((event.clientX - rect.left) / rect.width) * 100 + drag.dx;
+    const y = ((event.clientY - rect.top) / rect.height) * 100 + drag.dy;
+    const pos = {
+      x: Math.min(95, Math.max(5, x)),
+      y: Math.min(95, Math.max(5, y)),
+    };
+    updateDesign(drag.layer === "text" ? { textPos: pos } : { imagePos: pos });
+  };
+  const endDrag = () => {
+    dragRef.current = null;
+  };
   const modelDetails =
     model === "oversized"
       ? { productId: "p06", basePrice: 40, label: "Oversized Heavy Tee" }
@@ -1610,9 +1678,17 @@ function CustomTeePage() {
       event.target.value = "";
       return;
     }
-    setUploadName(file.name);
+    const targetSide = side;
     const reader = new FileReader();
-    reader.onload = () => setPreview(String(reader.result));
+    reader.onload = () =>
+      setDesigns((current) => ({
+        ...current,
+        [targetSide]: {
+          ...current[targetSide],
+          image: String(reader.result),
+          imageName: file.name,
+        },
+      }));
     reader.readAsDataURL(file);
     setMessage("");
   };
@@ -1622,7 +1698,13 @@ function CustomTeePage() {
       size,
       color,
       quantity,
-      customText: text || (uploadName ? "Uploaded artwork" : "Custom print"),
+      customText:
+        [designs.front.text, designs.back.text && `Back: ${designs.back.text}`]
+          .filter(Boolean)
+          .join(" / ") ||
+        (designs.front.image || designs.back.image
+          ? "Uploaded artwork"
+          : "Custom print"),
       customTextColor: textColor,
       customModel: model,
       customBasePrice: modelDetails.basePrice,
@@ -1647,19 +1729,61 @@ function CustomTeePage() {
       </div>
       <div className="custom-layout">
         <div className="custom-preview">
-          <div className="tee-preview" style={{ backgroundColor: hex }}>
+          <div className="side-toggle">
+            {(["front", "back"] as const).map((item) => (
+              <button
+                key={item}
+                className={side === item ? "active" : ""}
+                onClick={() => setSide(item)}
+              >
+                {item === "front" ? "Front" : "Back"}
+              </button>
+            ))}
+          </div>
+          <div
+            className={`tee-preview tee-preview--${side}`}
+            style={{ backgroundColor: hex }}
+            ref={previewRef}
+          >
             <span className="tee-neck" />
-            <span className="tee-art" style={{ color: textColor }}>
-              {preview ? (
-                <img src={preview} alt="Your uploaded design preview" />
-              ) : (
-                text || "YOUR DESIGN"
-              )}
-            </span>
+            {preview && (
+              <img
+                className="tee-layer tee-layer--image"
+                src={preview}
+                alt="Your uploaded design preview"
+                draggable={false}
+                style={{
+                  left: `${design.imagePos.x}%`,
+                  top: `${design.imagePos.y}%`,
+                  width: `${design.imageScale * 30}%`,
+                }}
+                onPointerDown={(event) => startDrag("image", event)}
+                onPointerMove={moveDrag}
+                onPointerUp={endDrag}
+                onPointerCancel={endDrag}
+              />
+            )}
+            {(text || !preview) && (
+              <span
+                className="tee-layer tee-layer--text"
+                style={{
+                  color: textColor,
+                  left: `${design.textPos.x}%`,
+                  top: `${design.textPos.y}%`,
+                  fontSize: `${design.textScale * 5.4}cqw`,
+                }}
+                onPointerDown={(event) => startDrag("text", event)}
+                onPointerMove={moveDrag}
+                onPointerUp={endDrag}
+                onPointerCancel={endDrag}
+              >
+                {text || "YOUR DESIGN"}
+              </span>
+            )}
             <span className="tee-preview-id">ZR—CUSTOM</span>
           </div>
           <span className="preview-caption">
-            <Check size={14} /> Preview updates as you make changes
+            <Check size={14} /> Drag text or image with the left mouse button
           </span>
         </div>
         <div className="custom-controls">
@@ -1721,14 +1845,27 @@ function CustomTeePage() {
             </div>
           </div>
           <label className="field">
-            03 / Your text
+            03 / Your text ({side})
             <input
               maxLength={24}
               value={text}
-              onChange={(event) => setText(event.target.value)}
+              onChange={(event) => updateDesign({ text: event.target.value })}
               placeholder="Keep it short"
             />
             <small>{text.length}/24 characters</small>
+          </label>
+          <label className="field">
+            Text size ({Math.round(design.textScale * 100)}%)
+            <input
+              type="range"
+              min={0.4}
+              max={2.5}
+              step={0.05}
+              value={design.textScale}
+              onChange={(event) =>
+                updateDesign({ textScale: Number(event.target.value) })
+              }
+            />
           </label>
           <label className="field color-input-label">
             04 / Text color
@@ -1750,6 +1887,29 @@ function CustomTeePage() {
               onChange={fileChanged}
             />
           </label>
+          {preview && (
+            <>
+              <label className="field">
+                Image size ({Math.round(design.imageScale * 100)}%)
+                <input
+                  type="range"
+                  min={0.2}
+                  max={2.5}
+                  step={0.05}
+                  value={design.imageScale}
+                  onChange={(event) =>
+                    updateDesign({ imageScale: Number(event.target.value) })
+                  }
+                />
+              </label>
+              <button
+                className="button button--outline"
+                onClick={() => updateDesign({ image: "", imageName: "" })}
+              >
+                Remove image
+              </button>
+            </>
+          )}
           <div className="custom-price">
             <span>
               {modelDetails.label} <b>{currency(modelDetails.basePrice)}</b>
