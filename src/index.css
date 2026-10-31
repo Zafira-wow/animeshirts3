@@ -9,3 +9,8 @@
 :root[data-theme=teal]{--acid:#14b8a6;--acid-bright:#5eead4}
 :root[data-theme=forest]{--acid:#3f8f3f;--acid-bright:#6fcf6f}
 :root[data-theme=olive]{--acid:#a3b32f;--acid-bright:#d2e65a}
+:root[data-theme=jade]{--acid:#00a86b;--acid-bright:#3de0a0}
+:root[data-theme=c008060]{--acid:#008060;--acid-bright:#2fc09a}
+:root[data-theme=c01784b]{--acid:#01784b;--acid-bright:#2fbf8a}
+:root[data-theme=c006a3f]{--acid:#006a3f;--acid-bright:#2fb57f}
+:root[data-theme=c043b22]{--acid:#043b22;--acid-bright:#2f9f6a}
