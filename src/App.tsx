@@ -584,9 +584,7 @@ function HomePage() {
       </section>
       <section className="custom-banner">
         <div className="custom-banner-mark">
-          Zero
-          <br />
-          Rules
+          Zero Rules
           <br />
           <span>Lab</span>
         </div>
