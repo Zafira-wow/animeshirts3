@@ -72,11 +72,39 @@ function Logo({ small = false }: { small?: boolean }) {
       aria-label="Zero Rules home"
     >
       <span className="brand-word">
-        zero<span>rules</span>
+        zero <span>rules</span>
         <i>.</i>
       </span>
       <span className="brand-tagline">your own rules</span>
     </Link>
+  );
+}
+
+function ThemeSwitch() {
+  const [theme, setTheme] = useState(
+    () => localStorage.getItem("zr-theme") ?? "green",
+  );
+  useEffect(() => {
+    document.documentElement.dataset.theme = theme;
+    localStorage.setItem("zr-theme", theme);
+  }, [theme]);
+  return (
+    <div className="theme-switch" aria-label="Site color (temporary)">
+      {[
+        { id: "green", color: "#00d653" },
+        { id: "emerald", color: "#50c878" },
+        { id: "mint", color: "#98ffcc" },
+      ].map((item) => (
+        <button
+          key={item.id}
+          title={item.id}
+          aria-label={`${item.id} theme`}
+          className={theme === item.id ? "active" : ""}
+          style={{ background: item.color }}
+          onClick={() => setTheme(item.id)}
+        />
+      ))}
+    </div>
   );
 }
 
@@ -107,6 +135,7 @@ function Header() {
   };
   return (
     <>
+      <ThemeSwitch />
       <div className="topline">
         <span>GOOD FIT. NO RULEBOOK.</span>
         <span>
@@ -480,7 +509,7 @@ function HomePage() {
                 <small>{item.subtitle}</small>
                 <b>{item.title}</b>
                 <span className="shop-arrow">
-                  Shop <ArrowDownRight size={15} />
+                  Shop <ArrowRight size={15} />
                 </span>
               </span>
             </Link>
@@ -545,9 +574,11 @@ function HomePage() {
       </section>
       <section className="custom-banner">
         <div className="custom-banner-mark">
-          ZR
+          Zero
           <br />
-          <span>LAB</span>
+          Rules
+          <br />
+          <span>Lab</span>
         </div>
         <div>
           <span className="eyebrow">Your idea, your tee</span>
@@ -1587,6 +1618,7 @@ function WishlistPage() {
 
 type CustomDesign = {
   text: string;
+  textEnabled: boolean;
   textPos: { x: number; y: number };
   textScale: number;
   image: string;
@@ -1597,6 +1629,7 @@ type CustomDesign = {
 
 const emptyDesign: CustomDesign = {
   text: "",
+  textEnabled: false,
   textPos: { x: 50, y: 62 },
   textScale: 1,
   image: "",
@@ -1615,7 +1648,7 @@ function CustomTeePage() {
   const [textColor, setTextColor] = useState("#00d653");
   const [side, setSide] = useState<"front" | "back">("front");
   const [designs, setDesigns] = useState<Record<"front" | "back", CustomDesign>>({
-    front: { ...emptyDesign, text: "your own rules" },
+    front: { ...emptyDesign, text: "your own rules", textEnabled: true },
     back: { ...emptyDesign },
   });
   const [message, setMessage] = useState("");
@@ -1725,7 +1758,7 @@ function CustomTeePage() {
           </h1>
           <p>Make a quick mock-up. No print order is sent from this demo.</p>
         </div>
-        <span className="demo-chip">ZR / LAB</span>
+        <span className="demo-chip">Zero Rules Lab</span>
       </div>
       <div className="custom-layout">
         <div className="custom-preview">
@@ -1763,7 +1796,7 @@ function CustomTeePage() {
                 onPointerCancel={endDrag}
               />
             )}
-            {(text || !preview) && (
+            {design.textEnabled && (text || !preview) && (
               <span
                 className="tee-layer tee-layer--text"
                 style={{
@@ -1846,12 +1879,24 @@ function CustomTeePage() {
           </div>
           <label className="field">
             03 / Your text ({side})
-            <input
-              maxLength={24}
-              value={text}
-              onChange={(event) => updateDesign({ text: event.target.value })}
-              placeholder="Keep it short"
-            />
+            <span className="text-clear">
+              <input
+                maxLength={24}
+                value={text}
+                onChange={(event) =>
+                  updateDesign({ text: event.target.value, textEnabled: true })
+                }
+                placeholder="Keep it short"
+              />
+              <button
+                type="button"
+                className="button button--outline"
+                disabled={!design.textEnabled}
+                onClick={() => updateDesign({ textEnabled: false, text: "" })}
+              >
+                Turn off text
+              </button>
+            </span>
             <small>{text.length}/24 characters</small>
           </label>
           <label className="field">
