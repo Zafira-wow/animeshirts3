@@ -94,6 +94,11 @@ function ThemeSwitch() {
         { id: "green", color: "#00d653" },
         { id: "emerald", color: "#50c878" },
         { id: "mint", color: "#98ffcc" },
+        { id: "shiny", color: "#1fffa0" },
+        { id: "dark", color: "#2e8b57" },
+        { id: "teal", color: "#14b8a6" },
+        { id: "forest", color: "#3f8f3f" },
+        { id: "olive", color: "#a3b32f" },
       ].map((item) => (
         <button
           key={item.id}

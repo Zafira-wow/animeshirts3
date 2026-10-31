@@ -4,3 +4,8 @@
 .brand-mark .brand-word,.brand-mark .brand-tagline{font-family:'DashleyRegular',cursive}
 :root[data-theme=emerald]{--acid:#50c878;--acid-bright:#8dffb0}
 :root[data-theme=mint]{--acid:#98ffcc;--acid-bright:#c9ffe6}
+:root[data-theme=shiny]{--acid:#1fffa0;--acid-bright:#7dffd0}
+:root[data-theme=dark]{--acid:#2e8b57;--acid-bright:#4fc07f}
+:root[data-theme=teal]{--acid:#14b8a6;--acid-bright:#5eead4}
+:root[data-theme=forest]{--acid:#3f8f3f;--acid-bright:#6fcf6f}
+:root[data-theme=olive]{--acid:#a3b32f;--acid-bright:#d2e65a}
