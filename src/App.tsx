@@ -54,6 +54,7 @@ import {
 } from "./data";
 import { StoreProvider, useStore, type CartLine } from "./store";
 import "./App.css";
+import "./theme-controls.css";
 
 const photo = (image: string, width = 900) => imageUrl(image, width);
 const productForLine = (line: CartLine) =>
@@ -84,36 +85,72 @@ function ThemeSwitch() {
   const [theme, setTheme] = useState(
     () => localStorage.getItem("zr-theme") ?? "green",
   );
+  const [background, setBackground] = useState(
+    () => localStorage.getItem("zr-background") ?? "current",
+  );
   useEffect(() => {
     document.documentElement.dataset.theme = theme;
     localStorage.setItem("zr-theme", theme);
   }, [theme]);
+  useEffect(() => {
+    document.documentElement.dataset.background = background;
+    localStorage.setItem("zr-background", background);
+  }, [background]);
+  const colors = [
+    { id: "green", color: "#00d653" },
+    { id: "emerald", color: "#50c878" },
+    { id: "mint", color: "#98ffcc" },
+    { id: "shiny", color: "#1fffa0" },
+    { id: "dark", color: "#2e8b57" },
+    { id: "teal", color: "#14b8a6" },
+    { id: "forest", color: "#3f8f3f" },
+    { id: "olive", color: "#a3b32f" },
+    { id: "jade", color: "#00a86b", label: "Jade #00A86B" },
+    { id: "c008060", color: "#008060" },
+    { id: "c01784b", color: "#01784b" },
+    { id: "c006a3f", color: "#006a3f" },
+    { id: "c043b22", color: "#043b22" },
+  ];
+  const backgrounds = [
+    { id: "current", color: "#070907", label: "Current near-black" },
+    { id: "true-black", color: "#000000", label: "True black" },
+    { id: "dark-gray", color: "#1a1a1a", label: "Dark gray" },
+    { id: "coal", color: "#101010", label: "Coal black" },
+  ];
   return (
-    <div className="theme-switch" aria-label="Site color (temporary)">
-      {[
-        { id: "green", color: "#00d653" },
-        { id: "emerald", color: "#50c878" },
-        { id: "mint", color: "#98ffcc" },
-        { id: "shiny", color: "#1fffa0" },
-        { id: "dark", color: "#2e8b57" },
-        { id: "teal", color: "#14b8a6" },
-        { id: "forest", color: "#3f8f3f" },
-        { id: "olive", color: "#a3b32f" },
-        { id: "jade", color: "#00a86b" },
-        { id: "c008060", color: "#008060" },
-        { id: "c01784b", color: "#01784b" },
-        { id: "c006a3f", color: "#006a3f" },
-        { id: "c043b22", color: "#043b22" },
-      ].map((item) => (
-        <button
-          key={item.id}
-          title={item.id}
-          aria-label={`${item.id} theme`}
-          className={theme === item.id ? "active" : ""}
-          style={{ background: item.color }}
-          onClick={() => setTheme(item.id)}
-        />
-      ))}
+    <div className="theme-switch">
+      <div className="theme-switch-row" role="group" aria-label="Site accent color">
+        <span>Accent</span>
+        <div className="theme-switch-options">
+          {colors.map((item) => (
+            <button
+              key={item.id}
+              title={item.label ?? item.id}
+              aria-label={`${item.label ?? item.id} accent color`}
+              aria-pressed={theme === item.id}
+              className={theme === item.id ? "active" : ""}
+              style={{ background: item.color }}
+              onClick={() => setTheme(item.id)}
+            />
+          ))}
+        </div>
+      </div>
+      <div className="theme-switch-row" role="group" aria-label="Site background color">
+        <span>Background</span>
+        <div className="theme-switch-options">
+          {backgrounds.map((item) => (
+            <button
+              key={item.id}
+              title={`${item.label} (${item.color})`}
+              aria-label={item.label}
+              aria-pressed={background === item.id}
+              className={background === item.id ? "active" : ""}
+              style={{ background: item.color }}
+              onClick={() => setBackground(item.id)}
+            />
+          ))}
+        </div>
+      </div>
     </div>
   );
 }
